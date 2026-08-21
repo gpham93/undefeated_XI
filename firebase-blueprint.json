@@ -1,0 +1,70 @@
+{
+  "entities": {
+    "Player": {
+      "title": "Player",
+      "description": "Represents a legendary or current Champions League player",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique player ID matching Firestore document ID" },
+        "name": { "type": "string", "description": "Full name of the player" },
+        "shortName": { "type": "string", "description": "Display/short name of the player" },
+        "era": { "type": "string", "description": "One of the footballing Eras" },
+        "primaryPosition": { "type": "string", "description": "Main tactical position" },
+        "alternativePositions": { "type": "array", "description": "Alternative playable positions" },
+        "originalRating": { "type": "integer", "description": "Base rating out of 99" },
+        "stats": {
+          "type": "object",
+          "description": "FUT stats like pace, shoot, dribble, etc"
+        },
+        "club": { "type": "string", "description": "Memorable team they represented" },
+        "nation": { "type": "string", "description": "Nationality" },
+        "imageTheme": { "type": "string", "description": "Theme color for FUT card" },
+        "description": { "type": "string", "description": "Brief description of UCL achievements" },
+        "actionImageUrl": { "type": "string", "description": "Optional action background image URL" }
+      },
+      "required": ["id", "name", "shortName", "era", "primaryPosition", "originalRating", "stats", "club", "nation", "imageTheme", "description"]
+    },
+    "Career": {
+      "title": "Career",
+      "description": "Represents a user's dynasty career state and historical seasons in Firebase",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Firebase Auth user ID" },
+        "squadName": { "type": "string", "description": "The custom name of the user's club dynasty" },
+        "seasonsCount": { "type": "integer", "description": "Total number of seasons completed" },
+        "trophies": { "type": "array", "description": "Years of UCL championships won" },
+        "historicalSeasons": { "type": "array", "description": "List of SeasonResult items" },
+        "difficulty": { "type": "string", "description": "Current active difficulty level" },
+        "currentEraBalance": { "type": "string", "description": "Current balance mode" },
+        "currentActiveEras": { "type": "array", "description": "List of enabled eras" },
+        "coins": { "type": "integer", "description": "Dynamic Dynasty coins owned" },
+        "unlockedPlayerIds": { "type": "array", "description": "Collection of permanently unlocked player codes" }
+      },
+      "required": ["userId", "squadName", "seasonsCount", "trophies", "historicalSeasons"]
+    },
+    "GlobalStats": {
+      "title": "GlobalStats",
+      "description": "Represents global aggregated simulation statistics",
+      "type": "object",
+      "properties": {
+        "totalPlayers": { "type": "integer", "description": "Total unique visitors across all devices" },
+        "totalSeasonsCompleted": { "type": "integer", "description": "Total complete seasons simulated globally" }
+      },
+      "required": ["totalPlayers", "totalSeasonsCompleted"]
+    }
+  },
+  "firestore": {
+    "/players/{playerId}": {
+      "schema": "Player",
+      "description": "Collection of Champions League players from 1950s until present"
+    },
+    "/careers/{userId}": {
+      "schema": "Career",
+      "description": "Saves user draft outcomes, completed seasons, stats, and dynasty history"
+    },
+    "/stats/{statId}": {
+      "schema": "GlobalStats",
+      "description": "Aggregated global game stats accessible by everyone"
+    }
+  }
+}

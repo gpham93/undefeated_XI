@@ -1,0 +1,6 @@
+{
+  "name": "Undefeated XI",
+  "description": "An addictive soccer draft simulator and pack opener. Build chemistry with historical legends and present champions, create custom club badges, and conquer the undefeated season.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

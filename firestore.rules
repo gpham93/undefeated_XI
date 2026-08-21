@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Validation for Player collection
+    function isValidPlayer(data) {
+      return data.keys().hasAll(['id', 'name', 'shortName', 'era', 'primaryPosition', 'originalRating', 'stats', 'club', 'nation', 'imageTheme', 'description'])
+        && data.id is string && data.id.size() <= 128
+        && data.name is string && data.name.size() <= 128
+        && data.shortName is string && data.shortName.size() <= 64
+        && data.era is string && data.era.size() <= 128
+        && data.primaryPosition is string && data.primaryPosition.size() <= 10
+        && data.originalRating is int && data.originalRating >= 1 && data.originalRating <= 99
+        && data.club is string && data.club.size() <= 128
+        && data.nation is string && data.nation.size() <= 128
+        && data.imageTheme is string && data.imageTheme.size() <= 64
+        && data.description is string && data.description.size() <= 1000;
+    }
+
+    // Validation for Career collection
+    function isValidCareer(data) {
+      return data.keys().hasAll(['userId', 'squadName', 'seasonsCount', 'trophies', 'historicalSeasons'])
+        && data.userId is string && data.userId == request.auth.uid
+        && data.squadName is string && data.squadName.size() <= 64
+        && data.seasonsCount is int && data.seasonsCount >= 0
+        && data.trophies is list
+        && data.historicalSeasons is list;
+    }
+
+    // Validation for GlobalStats collection
+    function isValidGlobalStats(data) {
+      return data.keys().size() > 0 && data.keys().size() <= 2
+        && (!data.keys().hasAll(['totalPlayers']) || (data.totalPlayers is int && data.totalPlayers >= 0))
+        && (!data.keys().hasAll(['totalSeasonsCompleted']) || (data.totalSeasonsCompleted is int && data.totalSeasonsCompleted >= 0));
+    }
+
+    // Players collection rules
+    match /players/{playerId} {
+      allow read: if true;
+      allow create, update: if isSignedIn() && isValidId(playerId) && isValidPlayer(incoming());
+      allow delete: if isSignedIn();
+    }
+
+    // Careers collection rules
+    match /careers/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidId(userId) && isValidCareer(incoming());
+      allow update: if isOwner(userId) && isValidId(userId) && isValidCareer(incoming())
+        && incoming().userId == existing().userId; // Immutable owner matching
+      allow delete: if isOwner(userId);
+    }
+
+    // Stats collection rules
+    match /stats/{statId} {
+      allow read: if true;
+      allow create, update: if statId == 'global' && isValidGlobalStats(incoming());
+    }
+  }
+}
